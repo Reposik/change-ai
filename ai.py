@@ -3,25 +3,23 @@ import customtkinter as ctk
 from groq import Groq
 import threading
 
-# Ключ подтянется из системы при сборке
-API_KEY = os.environ.get("GROQ_API_KEY", "")
+# Гитхаб заменит слово PLACEHOLDER_KEY на твой реальный ключ при сборке
+API_KEY = "PLACEHOLDER_KEY"
 
 class FeykinApp(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.title("FEYKIN AI - AZER EDITION")
+        self.title("FEYKIN AI - FIXED EDITION")
         self.geometry("800x600")
         ctk.set_appearance_mode("dark")
 
-        # Текстовое поле
         self.output = ctk.CTkTextbox(self, width=760, height=450, font=("Consolas", 14))
         self.output.pack(padx=20, pady=20)
 
-        # Фрейм для ввода
         self.entry_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.entry_frame.pack(padx=20, pady=10, fill="x")
 
-        self.input = ctk.CTkEntry(self.entry_frame, placeholder_text="Пиши запрос...", height=40)
+        self.input = ctk.CTkEntry(self.entry_frame, placeholder_text="Теперь точно заработает. Пиши запрос...", height=40)
         self.input.pack(side="left", fill="x", expand=True, padx=(0, 10))
 
         self.btn = ctk.CTkButton(self.entry_frame, text="ПУСК", command=self.start, fg_color="#ff003c")
@@ -35,8 +33,9 @@ class FeykinApp(ctk.CTk):
 
     def run(self, txt):
         try:
-            if not API_KEY:
-                res = "ОШИБКА: API ключ не вшит! Проверь GitHub Secrets."
+            # Если ключ всё еще заглушка, значит что-то пошло не так в Actions
+            if API_KEY == "PLACEHOLDER_KEY":
+                res = "Критическая ошибка: Ключ не был вшит при сборке!"
             else:
                 client = Groq(api_key=API_KEY)
                 chat = client.chat.completions.create(
