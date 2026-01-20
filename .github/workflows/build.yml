@@ -20,10 +20,16 @@ jobs:
       run: |
         pip install groq customtkinter pyinstaller
 
-    - name: Build EXE
+    - name: Inject API Key
       shell: pwsh
       env:
-        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        MY_SECRET_KEY: ${{ secrets.GROQ_API_KEY }}
+      run: |
+        # Эта команда заменит заглушку в коде на реальный ключ из Secrets
+        (Get-Content ai.py).Replace('PLACEHOLDER_KEY', "$env:MY_SECRET_KEY") | Set-Content ai.py
+
+    - name: Build EXE
+      shell: pwsh
       run: |
         $CTK_PATH = python -c "import customtkinter, os; print(os.path.dirname(customtkinter.__file__))"
         python -m PyInstaller --noconfirm --onefile --windowed --add-data "${CTK_PATH};customtkinter/" ai.py
@@ -31,5 +37,5 @@ jobs:
     - name: Upload
       uses: actions/upload-artifact@v4
       with:
-        name: FeykinAI_Ready
+        name: FeykinAI
         path: dist/ai.exe
