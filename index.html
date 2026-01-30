@@ -3,39 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChangeAI</title>
+    <title>ChangeAI by GDOT</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { font-family: ui-sans-serif, system-ui; background: #fff; color: #1a1a1a; overflow: hidden; }
-        .sidebar { background: #f9f9f9; width: 280px; border-right: 1px solid #e5e5e5; }
-        .sidebar-item { margin: 4px 8px; padding: 10px; border-radius: 10px; cursor: pointer; font-size: 14px; transition: 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sidebar { background: #f9f9f9; width: 260px; border-right: 1px solid #e5e5e5; transition: 0.3s; }
+        .sidebar-item { margin: 4px 8px; padding: 10px; border-radius: 10px; cursor: pointer; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #4b5563; }
         .sidebar-item:hover { background: #ececec; }
         .chat-container { max-width: 800px; margin: 0 auto; width: 100%; }
         .user-msg { margin-bottom: 24px; text-align: right; }
-        .user-content { background: #f4f4f4; display: inline-block; padding: 10px 16px; border-radius: 15px; }
-        .ai-msg { margin-bottom: 30px; line-height: 1.6; }
-        pre { background: #000; color: #fff; padding: 15px; border-radius: 10px; margin: 10px 0; overflow-x: auto; }
+        .user-content { background: #f4f4f4; display: inline-block; padding: 10px 16px; border-radius: 18px; max-width: 80%; text-align: left; }
+        .ai-msg { margin-bottom: 30px; display: flex; gap: 15px; }
+        .ai-avatar { width: 30px; height: 30px; background: #000; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; }
+        .ai-content { line-height: 1.6; font-size: 16px; color: #374151; }
+        pre { background: #000; color: #fff; padding: 15px; border-radius: 10px; margin: 10px 0; overflow-x: auto; font-size: 14px; }
         #auth-screen { background: white; z-index: 1000; position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
-        .input-area { background: #f4f4f4; border-radius: 20px; padding: 10px 20px; border: 1px solid #ddd; }
-        .loader { width: 20px; height: 20px; border: 2px solid #ccc; border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; }
+        .input-area { background: #f4f4f4; border-radius: 24px; padding: 8px 16px; border: 1px solid #e5e5e5; }
+        .loader { width: 16px; height: 16px; border: 2px solid #ddd; border-top-color: #000; border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="flex h-screen">
 
     <div id="auth-screen">
-        <div class="max-w-sm w-full p-6 text-center">
-            <h1 class="text-3xl font-bold mb-8 text-blue-600">ChangeAI</h1>
+        <div class="max-w-sm w-full p-8 text-center">
+            <div class="w-16 h-16 bg-black rounded-2xl mx-auto mb-6 flex items-center justify-center text-white text-2xl font-bold">AI</div>
+            <h1 class="text-2xl font-bold mb-8">Вход в систему</h1>
             <div class="space-y-3">
-                <button onclick="authAction('google')" class="w-full p-3 border rounded-xl flex items-center justify-center gap-2 hover:bg-gray-50">
-                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Google Login
+                <button onclick="authAction('google')" class="w-full p-3 border rounded-xl flex items-center justify-center gap-2 hover:bg-gray-50 transition font-medium">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Google
                 </button>
-                <div class="text-gray-400 text-xs py-2">ИЛИ</div>
-                <input type="email" id="email" placeholder="Email" class="w-full p-3 bg-gray-100 rounded-xl outline-none">
-                <input type="password" id="password" placeholder="Пароль" class="w-full p-3 bg-gray-100 rounded-xl outline-none">
-                <button onclick="authAction('login')" class="w-full bg-blue-600 text-white p-3 rounded-xl font-bold">Войти / Регистрация</button>
+                <div class="py-2 text-gray-300 text-xs">ИЛИ</div>
+                <input type="email" id="email" placeholder="Email" class="w-full p-3 bg-gray-50 rounded-xl outline-none focus:ring-1 ring-gray-300">
+                <input type="password" id="password" placeholder="Пароль" class="w-full p-3 bg-gray-50 rounded-xl outline-none focus:ring-1 ring-gray-300">
+                <button onclick="authAction('login')" class="w-full bg-black text-white p-3 rounded-xl font-bold hover:opacity-90">Продолжить</button>
                 <p id="auth-err" class="text-red-500 text-xs mt-4 hidden"></p>
             </div>
         </div>
@@ -43,28 +46,31 @@
 
     <aside class="sidebar flex flex-col hidden md:flex">
         <div class="p-4">
-            <button onclick="location.reload()" class="w-full p-3 bg-white border rounded-xl font-medium hover:shadow-sm">Новый чат</button>
+            <button onclick="location.reload()" class="w-full p-2 bg-white border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50">Новый чат</button>
         </div>
         <div id="history-list" class="flex-1 overflow-y-auto px-2"></div>
-        <div class="p-4 border-t text-sm flex justify-between items-center">
-            <span id="user-display" class="truncate opacity-60">Azer</span>
-            <button onclick="logout()"><i class="fa-solid fa-sign-out"></i></button>
+        <div class="p-4 border-t flex justify-between items-center bg-gray-50/50">
+            <span id="user-display" class="text-xs font-medium truncate opacity-50">Azer</span>
+            <button onclick="logout()" class="text-gray-400 hover:text-black"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
         </div>
     </aside>
 
     <main class="flex-1 flex flex-col h-screen">
-        <div id="welcome" class="flex-1 flex flex-col items-center justify-center text-center opacity-30">
-            <h2 class="text-3xl font-bold">ChangeAI</h2>
-            <p>База: WinTube (Firebase RTDB)</p>
+        <div id="welcome" class="flex-1 flex flex-col items-center justify-center text-center px-6">
+            <h2 class="text-2xl font-semibold text-gray-800">Чем я могу помочь?</h2>
         </div>
+
         <div id="chat-window" class="flex-1 overflow-y-auto hidden p-6">
             <div id="messages-box" class="chat-container"></div>
         </div>
-        <div class="p-4">
+
+        <div class="p-6">
             <div class="chat-container">
                 <div class="input-area flex items-center gap-3">
-                    <input type="text" id="user-input" placeholder="Напиши что-нибудь..." class="flex-1 bg-transparent outline-none">
-                    <button id="send-btn" class="bg-black text-white w-10 h-10 rounded-full flex items-center justify-center"><i class="fa-solid fa-arrow-up"></i></button>
+                    <input type="text" id="user-input" placeholder="Сообщение..." class="flex-1 bg-transparent outline-none py-2">
+                    <button id="send-btn" class="bg-black text-white w-9 h-9 rounded-full flex items-center justify-center hover:opacity-80 transition">
+                        <i class="fa-solid fa-arrow-up"></i>
+                    </button>
                 </div>
             </div>
         </div>
@@ -73,7 +79,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getDatabase, ref, push, set, onValue, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
         import Groq from "https://cdn.skypack.dev/groq-sdk";
 
         const firebaseConfig = {
@@ -86,7 +92,7 @@
             appId: "1:227897314140:web:fa85c6a77147f8128c8f99"
         };
 
-        const GROQ_API_KEY = "GROQ_API_KEY"; // Подставь свой или оставь для своей схемы
+        const GROQ_API_KEY = "ВСТАВЬ_СЮДА_КЛЮЧ"; 
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -97,7 +103,6 @@
         let currentChatId = null;
         let memory = [];
 
-        // AUTH ACTION
         window.authAction = async (type) => {
             const errBox = document.getElementById('auth-err');
             errBox.classList.add('hidden');
@@ -106,14 +111,11 @@
                 else {
                     const e = document.getElementById('email').value;
                     const p = document.getElementById('password').value;
-                    try {
-                        await signInWithEmailAndPassword(auth, e, p);
-                    } catch {
-                        await createUserWithEmailAndPassword(auth, e, p);
-                    }
+                    try { await signInWithEmailAndPassword(auth, e, p); } 
+                    catch { await createUserWithEmailAndPassword(auth, e, p); }
                 }
             } catch (e) {
-                errBox.innerText = "ОШИБКА: " + e.code;
+                errBox.innerText = "Ошибка: " + e.code;
                 errBox.classList.remove('hidden');
             }
         };
@@ -128,7 +130,6 @@
             }
         });
 
-        // CHAT ENGINE
         async function runChat() {
             const input = document.getElementById('user-input');
             const text = input.value.trim();
@@ -140,7 +141,6 @@
 
             renderMsg('user', text);
             memory.push({ role: 'user', content: text });
-
             const aiDiv = renderMsg('assistant', '<div class="loader"></div>');
 
             try {
@@ -149,7 +149,6 @@
                     model: "llama-3.3-70b-versatile",
                     stream: true,
                 });
-
                 let fullText = "";
                 aiDiv.innerHTML = "";
                 for await (const chunk of stream) {
@@ -160,7 +159,7 @@
                 memory.push({ role: 'assistant', content: fullText });
                 saveToDB(text, fullText);
             } catch (e) {
-                aiDiv.innerText = "Ошибка нейросети. Проверь GROQ_API_KEY.";
+                aiDiv.innerText = "Требуется API ключ нейросети.";
             }
         }
 
@@ -177,8 +176,7 @@
         }
 
         function loadHistory() {
-            const uid = auth.currentUser.uid;
-            onValue(ref(db, `chats/${uid}`), (snap) => {
+            onValue(ref(db, `chats/${auth.currentUser.uid}`), (snap) => {
                 const list = document.getElementById('history-list');
                 list.innerHTML = "";
                 const data = snap.val();
@@ -208,11 +206,16 @@
         function renderMsg(role, text) {
             const box = document.getElementById('messages-box');
             const div = document.createElement('div');
-            div.className = role === 'user' ? 'user-msg' : 'ai-msg';
-            div.innerHTML = role === 'user' ? `<div class="user-content">${text}</div>` : `<div>${marked.parse(text)}</div>`;
+            if (role === 'user') {
+                div.className = 'user-msg';
+                div.innerHTML = `<div class="user-content">${text}</div>`;
+            } else {
+                div.className = 'ai-msg';
+                div.innerHTML = `<div class="ai-avatar">AI</div><div class="ai-content">${marked.parse(text)}</div>`;
+            }
             box.appendChild(div);
             document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight;
-            return role === 'user' ? div : div.lastChild;
+            return role === 'user' ? div : div.querySelector('.ai-content');
         }
 
         document.getElementById('send-btn').onclick = runChat;
