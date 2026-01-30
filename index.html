@@ -3,25 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Chat</title>
+    <title>AI Chat | Private</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { font-family: ui-sans-serif, system-ui; background: #fff; overflow: hidden; }
         .sidebar { background: #f9f9f9; width: 260px; border-right: 1px solid #e5e5e5; }
-        .sidebar-item { margin: 4px 8px; padding: 10px; border-radius: 10px; cursor: pointer; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .sidebar-item:hover { background: #ececec; }
+        .sidebar-item { margin: 4px 8px; padding: 10px; border-radius: 10px; cursor: pointer; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #4b5563; }
+        .sidebar-item:hover { background: #ececec; color: #000; }
         .chat-container { max-width: 800px; margin: 0 auto; width: 100%; }
         .user-msg { margin-bottom: 24px; text-align: right; }
         .user-content { background: #f4f4f4; display: inline-block; padding: 10px 16px; border-radius: 18px; max-width: 80%; text-align: left; }
         .ai-msg { margin-bottom: 30px; display: flex; gap: 15px; }
-        .ai-avatar { width: 30px; height: 30px; background: #000; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; }
+        .ai-avatar { width: 30px; height: 30px; background: #000; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: bold; }
         .ai-content { line-height: 1.6; font-size: 16px; color: #374151; width: 100%; }
         #auth-screen { background: white; z-index: 1000; position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
         .input-area { background: #f4f4f4; border-radius: 24px; padding: 8px 16px; border: 1px solid #e5e5e5; }
         .loader { width: 16px; height: 16px; border: 2px solid #ddd; border-top-color: #000; border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
+        pre { background: #1a1a1a; color: #fff; padding: 15px; border-radius: 10px; margin: 10px 0; overflow-x: auto; }
     </style>
 </head>
 <body class="flex h-screen">
@@ -34,27 +35,27 @@
                 <button onclick="authAction('google')" class="w-full p-3 border rounded-xl flex items-center justify-center gap-2 hover:bg-gray-50 transition">
                     <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Google
                 </button>
-                <div class="py-2 text-gray-300 text-xs">ИЛИ</div>
-                <input type="email" id="email" placeholder="Email" class="w-full p-3 bg-gray-50 rounded-xl outline-none">
-                <input type="password" id="password" placeholder="Пароль" class="w-full p-3 bg-gray-50 rounded-xl outline-none">
-                <button onclick="authAction('login')" class="w-full bg-black text-white p-3 rounded-xl font-bold">Войти</button>
+                <div class="py-2 text-gray-300 text-xs text-center uppercase tracking-widest">или</div>
+                <input type="email" id="email" placeholder="Email" class="w-full p-3 bg-gray-50 rounded-xl outline-none border border-transparent focus:border-gray-200">
+                <input type="password" id="password" placeholder="Пароль" class="w-full p-3 bg-gray-50 rounded-xl outline-none border border-transparent focus:border-gray-200">
+                <button onclick="authAction('login')" class="w-full bg-black text-white p-3 rounded-xl font-bold hover:opacity-90 transition">Войти / Регистрация</button>
                 <p id="auth-err" class="text-red-500 text-xs mt-4 hidden"></p>
             </div>
         </div>
     </div>
 
     <aside class="sidebar flex flex-col hidden md:flex">
-        <div class="p-4"><button onclick="location.reload()" class="w-full p-2 bg-white border rounded-lg text-sm font-medium">Новый чат</button></div>
+        <div class="p-4"><button onclick="location.reload()" class="w-full p-2 bg-white border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 transition">Новый чат</button></div>
         <div id="history-list" class="flex-1 overflow-y-auto px-2"></div>
         <div class="p-4 border-t flex justify-between items-center bg-gray-50/50">
-            <span id="user-display" class="text-xs font-medium truncate opacity-50">Azer</span>
-            <button onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+            <span id="user-display" class="text-xs font-semibold truncate opacity-40">User</span>
+            <button onclick="logout()" class="text-gray-400 hover:text-black transition"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
         </div>
     </aside>
 
     <main class="flex-1 flex flex-col h-screen">
         <div id="welcome" class="flex-1 flex flex-col items-center justify-center text-center px-6">
-            <h2 class="text-2xl font-semibold text-gray-800">Готов к работе</h2>
+            <h2 class="text-2xl font-semibold text-gray-800 opacity-20">Aнонимный ИИ</h2>
         </div>
         <div id="chat-window" class="flex-1 overflow-y-auto hidden p-6">
             <div id="messages-box" class="chat-container"></div>
@@ -62,8 +63,8 @@
         <div class="p-6">
             <div class="chat-container">
                 <div class="input-area flex items-center gap-3">
-                    <input type="text" id="user-input" placeholder="Введите текст..." class="flex-1 bg-transparent outline-none py-2">
-                    <button id="send-btn" class="bg-black text-white w-9 h-9 rounded-full flex items-center justify-center">
+                    <input type="text" id="user-input" placeholder="Напишите что-нибудь..." class="flex-1 bg-transparent outline-none py-2">
+                    <button id="send-btn" class="bg-black text-white w-9 h-9 rounded-full flex items-center justify-center hover:opacity-80 transition">
                         <i class="fa-solid fa-arrow-up"></i>
                     </button>
                 </div>
@@ -87,8 +88,9 @@
             appId: "1:227897314140:web:fa85c6a77147f8128c8f99"
         };
 
-        // ВСТАВЬ КЛЮЧ СЮДА ПЕРЕД СНОМ!
-        const GROQ_API_KEY = "ВСТАВЬ_КЛЮЧ_ОТ_GROQ_СЮДА"; 
+        // Пытаемся взять ключ из системы или переменной (если это Node.js окружение)
+        // В браузере тебе всё равно придется вставить его сюда один раз:
+        const GROQ_API_KEY = "ВСТАВЬ_СВОЙ_КЛЮЧ_ЗДЕСЬ"; 
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -136,7 +138,6 @@
             const aiDiv = renderMsg('assistant', '<div class="loader"></div>');
 
             try {
-                if (GROQ_API_KEY.includes("ВСТАВЬ")) throw new Error("no-key");
                 const stream = await groq.chat.completions.create({
                     messages: memory,
                     model: "llama-3.3-70b-versatile",
@@ -152,11 +153,12 @@
                 memory.push({ role: 'assistant', content: full });
                 save(val, full);
             } catch (e) {
-                aiDiv.innerText = e.message === "no-key" ? "Ошибка: Ты не вставил API Ключ Groq в код!" : "Ошибка API. Проверь лимиты.";
+                aiDiv.innerText = "Ошибка. Убедись, что GROQ_API_KEY вставлен в код.";
             }
         }
 
         async function save(u, a) {
+            if (!auth.currentUser) return;
             const uid = auth.currentUser.uid;
             if(!currentChatId) {
                 const r = push(ref(db, `chats/${uid}`));
@@ -169,6 +171,7 @@
         }
 
         function loadHistory() {
+            if (!auth.currentUser) return;
             onValue(ref(db, `chats/${auth.currentUser.uid}`), (s) => {
                 const l = document.getElementById('history-list'); l.innerHTML = "";
                 const d = s.val();
@@ -197,7 +200,8 @@
             d.className = r === 'user' ? 'user-msg' : 'ai-msg';
             d.innerHTML = r === 'user' ? `<div class="user-content">${t}</div>` : `<div class="ai-avatar">AI</div><div class="ai-content">${marked.parse(t)}</div>`;
             b.appendChild(d);
-            document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight;
+            const win = document.getElementById('chat-window');
+            win.scrollTop = win.scrollHeight;
             return r === 'user' ? d : d.querySelector('.ai-content');
         }
 
