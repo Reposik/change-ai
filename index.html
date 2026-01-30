@@ -3,22 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChangeAI by GDOT</title>
+    <title>AI Chat</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: ui-sans-serif, system-ui; background: #fff; color: #1a1a1a; overflow: hidden; }
-        .sidebar { background: #f9f9f9; width: 260px; border-right: 1px solid #e5e5e5; transition: 0.3s; }
-        .sidebar-item { margin: 4px 8px; padding: 10px; border-radius: 10px; cursor: pointer; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #4b5563; }
+        body { font-family: ui-sans-serif, system-ui; background: #fff; overflow: hidden; }
+        .sidebar { background: #f9f9f9; width: 260px; border-right: 1px solid #e5e5e5; }
+        .sidebar-item { margin: 4px 8px; padding: 10px; border-radius: 10px; cursor: pointer; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .sidebar-item:hover { background: #ececec; }
         .chat-container { max-width: 800px; margin: 0 auto; width: 100%; }
         .user-msg { margin-bottom: 24px; text-align: right; }
         .user-content { background: #f4f4f4; display: inline-block; padding: 10px 16px; border-radius: 18px; max-width: 80%; text-align: left; }
         .ai-msg { margin-bottom: 30px; display: flex; gap: 15px; }
         .ai-avatar { width: 30px; height: 30px; background: #000; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; }
-        .ai-content { line-height: 1.6; font-size: 16px; color: #374151; }
-        pre { background: #000; color: #fff; padding: 15px; border-radius: 10px; margin: 10px 0; overflow-x: auto; font-size: 14px; }
+        .ai-content { line-height: 1.6; font-size: 16px; color: #374151; width: 100%; }
         #auth-screen { background: white; z-index: 1000; position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
         .input-area { background: #f4f4f4; border-radius: 24px; padding: 8px 16px; border: 1px solid #e5e5e5; }
         .loader { width: 16px; height: 16px; border: 2px solid #ddd; border-top-color: #000; border-radius: 50%; animation: spin 0.8s linear infinite; }
@@ -30,45 +29,41 @@
     <div id="auth-screen">
         <div class="max-w-sm w-full p-8 text-center">
             <div class="w-16 h-16 bg-black rounded-2xl mx-auto mb-6 flex items-center justify-center text-white text-2xl font-bold">AI</div>
-            <h1 class="text-2xl font-bold mb-8">Вход в систему</h1>
+            <h1 class="text-2xl font-bold mb-8">Вход</h1>
             <div class="space-y-3">
-                <button onclick="authAction('google')" class="w-full p-3 border rounded-xl flex items-center justify-center gap-2 hover:bg-gray-50 transition font-medium">
+                <button onclick="authAction('google')" class="w-full p-3 border rounded-xl flex items-center justify-center gap-2 hover:bg-gray-50 transition">
                     <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Google
                 </button>
                 <div class="py-2 text-gray-300 text-xs">ИЛИ</div>
-                <input type="email" id="email" placeholder="Email" class="w-full p-3 bg-gray-50 rounded-xl outline-none focus:ring-1 ring-gray-300">
-                <input type="password" id="password" placeholder="Пароль" class="w-full p-3 bg-gray-50 rounded-xl outline-none focus:ring-1 ring-gray-300">
-                <button onclick="authAction('login')" class="w-full bg-black text-white p-3 rounded-xl font-bold hover:opacity-90">Продолжить</button>
+                <input type="email" id="email" placeholder="Email" class="w-full p-3 bg-gray-50 rounded-xl outline-none">
+                <input type="password" id="password" placeholder="Пароль" class="w-full p-3 bg-gray-50 rounded-xl outline-none">
+                <button onclick="authAction('login')" class="w-full bg-black text-white p-3 rounded-xl font-bold">Войти</button>
                 <p id="auth-err" class="text-red-500 text-xs mt-4 hidden"></p>
             </div>
         </div>
     </div>
 
     <aside class="sidebar flex flex-col hidden md:flex">
-        <div class="p-4">
-            <button onclick="location.reload()" class="w-full p-2 bg-white border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50">Новый чат</button>
-        </div>
+        <div class="p-4"><button onclick="location.reload()" class="w-full p-2 bg-white border rounded-lg text-sm font-medium">Новый чат</button></div>
         <div id="history-list" class="flex-1 overflow-y-auto px-2"></div>
         <div class="p-4 border-t flex justify-between items-center bg-gray-50/50">
             <span id="user-display" class="text-xs font-medium truncate opacity-50">Azer</span>
-            <button onclick="logout()" class="text-gray-400 hover:text-black"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+            <button onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
         </div>
     </aside>
 
     <main class="flex-1 flex flex-col h-screen">
         <div id="welcome" class="flex-1 flex flex-col items-center justify-center text-center px-6">
-            <h2 class="text-2xl font-semibold text-gray-800">Чем я могу помочь?</h2>
+            <h2 class="text-2xl font-semibold text-gray-800">Готов к работе</h2>
         </div>
-
         <div id="chat-window" class="flex-1 overflow-y-auto hidden p-6">
             <div id="messages-box" class="chat-container"></div>
         </div>
-
         <div class="p-6">
             <div class="chat-container">
                 <div class="input-area flex items-center gap-3">
-                    <input type="text" id="user-input" placeholder="Сообщение..." class="flex-1 bg-transparent outline-none py-2">
-                    <button id="send-btn" class="bg-black text-white w-9 h-9 rounded-full flex items-center justify-center hover:opacity-80 transition">
+                    <input type="text" id="user-input" placeholder="Введите текст..." class="flex-1 bg-transparent outline-none py-2">
+                    <button id="send-btn" class="bg-black text-white w-9 h-9 rounded-full flex items-center justify-center">
                         <i class="fa-solid fa-arrow-up"></i>
                     </button>
                 </div>
@@ -92,130 +87,118 @@
             appId: "1:227897314140:web:fa85c6a77147f8128c8f99"
         };
 
-        const GROQ_API_KEY = "ВСТАВЬ_СЮДА_КЛЮЧ"; 
+        // ВСТАВЬ КЛЮЧ СЮДА ПЕРЕД СНОМ!
+        const GROQ_API_KEY = "ВСТАВЬ_КЛЮЧ_ОТ_GROQ_СЮДА"; 
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getDatabase(app);
-        const groq = new Groq({ apiKey: GROQ_API_KEY, dangerouslyAllowBrowser: true });
         const provider = new GoogleAuthProvider();
+        const groq = new Groq({ apiKey: GROQ_API_KEY, dangerouslyAllowBrowser: true });
 
         let currentChatId = null;
         let memory = [];
 
-        window.authAction = async (type) => {
-            const errBox = document.getElementById('auth-err');
-            errBox.classList.add('hidden');
+        window.authAction = async (t) => {
+            const err = document.getElementById('auth-err');
+            err.classList.add('hidden');
             try {
-                if (type === 'google') await signInWithPopup(auth, provider);
+                if (t === 'google') await signInWithPopup(auth, provider);
                 else {
-                    const e = document.getElementById('email').value;
-                    const p = document.getElementById('password').value;
-                    try { await signInWithEmailAndPassword(auth, e, p); } 
-                    catch { await createUserWithEmailAndPassword(auth, e, p); }
+                    const e = document.getElementById('email').value, p = document.getElementById('password').value;
+                    try { await signInWithEmailAndPassword(auth, e, p); } catch { await createUserWithEmailAndPassword(auth, e, p); }
                 }
-            } catch (e) {
-                errBox.innerText = "Ошибка: " + e.code;
-                errBox.classList.remove('hidden');
-            }
+            } catch (e) { err.innerText = "Ошибка: " + e.code; err.classList.remove('hidden'); }
         };
 
         window.logout = () => signOut(auth).then(() => location.reload());
 
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
+        onAuthStateChanged(auth, (u) => {
+            if (u) {
                 document.getElementById('auth-screen').style.display = 'none';
-                document.getElementById('user-display').innerText = user.email;
+                document.getElementById('user-display').innerText = u.email;
                 loadHistory();
             }
         });
 
         async function runChat() {
             const input = document.getElementById('user-input');
-            const text = input.value.trim();
-            if(!text) return;
+            const val = input.value.trim();
+            if(!val) return;
             input.value = '';
 
             document.getElementById('welcome').classList.add('hidden');
-            document.getElementById('chat-window').classList.remove('hidden');
+            const win = document.getElementById('chat-window');
+            win.classList.remove('hidden');
 
-            renderMsg('user', text);
-            memory.push({ role: 'user', content: text });
+            renderMsg('user', val);
+            memory.push({ role: 'user', content: val });
             const aiDiv = renderMsg('assistant', '<div class="loader"></div>');
 
             try {
+                if (GROQ_API_KEY.includes("ВСТАВЬ")) throw new Error("no-key");
                 const stream = await groq.chat.completions.create({
                     messages: memory,
                     model: "llama-3.3-70b-versatile",
                     stream: true,
                 });
-                let fullText = "";
+                let full = "";
                 aiDiv.innerHTML = "";
                 for await (const chunk of stream) {
-                    fullText += chunk.choices[0]?.delta?.content || "";
-                    aiDiv.innerHTML = marked.parse(fullText);
-                    document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight;
+                    full += chunk.choices[0]?.delta?.content || "";
+                    aiDiv.innerHTML = marked.parse(full);
+                    win.scrollTop = win.scrollHeight;
                 }
-                memory.push({ role: 'assistant', content: fullText });
-                saveToDB(text, fullText);
+                memory.push({ role: 'assistant', content: full });
+                save(val, full);
             } catch (e) {
-                aiDiv.innerText = "Требуется API ключ нейросети.";
+                aiDiv.innerText = e.message === "no-key" ? "Ошибка: Ты не вставил API Ключ Groq в код!" : "Ошибка API. Проверь лимиты.";
             }
         }
 
-        async function saveToDB(u, a) {
+        async function save(u, a) {
             const uid = auth.currentUser.uid;
             if(!currentChatId) {
-                const chatRef = push(ref(db, `chats/${uid}`));
-                currentChatId = chatRef.key;
+                const r = push(ref(db, `chats/${uid}`));
+                currentChatId = r.key;
                 await set(ref(db, `chats/${uid}/${currentChatId}/title`), u.substring(0, 30));
             }
-            const mRef = ref(db, `chats/${uid}/${currentChatId}/messages`);
-            await set(push(mRef), { role: 'user', text: u });
-            await set(push(mRef), { role: 'assistant', text: a });
+            const m = ref(db, `chats/${uid}/${currentChatId}/messages`);
+            await set(push(m), { role: 'user', text: u });
+            await set(push(m), { role: 'assistant', text: a });
         }
 
         function loadHistory() {
-            onValue(ref(db, `chats/${auth.currentUser.uid}`), (snap) => {
-                const list = document.getElementById('history-list');
-                list.innerHTML = "";
-                const data = snap.val();
-                if(data) Object.keys(data).reverse().forEach(id => {
+            onValue(ref(db, `chats/${auth.currentUser.uid}`), (s) => {
+                const l = document.getElementById('history-list'); l.innerHTML = "";
+                const d = s.val();
+                if(d) Object.keys(d).reverse().forEach(id => {
                     const div = document.createElement('div');
-                    div.className = 'sidebar-item';
-                    div.innerText = data[id].title || "Чат";
-                    div.onclick = () => loadChat(id, data[id].messages);
-                    list.appendChild(div);
+                    div.className = 'sidebar-item'; div.innerText = d[id].title || "Чат";
+                    div.onclick = () => {
+                        currentChatId = id;
+                        document.getElementById('welcome').classList.add('hidden');
+                        document.getElementById('chat-window').classList.remove('hidden');
+                        document.getElementById('messages-box').innerHTML = "";
+                        memory = [];
+                        if(d[id].messages) Object.values(d[id].messages).forEach(m => {
+                            renderMsg(m.role, m.text);
+                            memory.push({ role: m.role, content: m.text });
+                        });
+                    };
+                    l.appendChild(div);
                 });
             });
         }
 
-        function loadChat(id, msgs) {
-            currentChatId = id;
-            document.getElementById('welcome').classList.add('hidden');
-            document.getElementById('chat-window').classList.remove('hidden');
-            const box = document.getElementById('messages-box');
-            box.innerHTML = "";
-            memory = [];
-            if(msgs) Object.values(msgs).forEach(m => {
-                renderMsg(m.role, m.text);
-                memory.push({ role: m.role, content: m.text });
-            });
-        }
-
-        function renderMsg(role, text) {
-            const box = document.getElementById('messages-box');
-            const div = document.createElement('div');
-            if (role === 'user') {
-                div.className = 'user-msg';
-                div.innerHTML = `<div class="user-content">${text}</div>`;
-            } else {
-                div.className = 'ai-msg';
-                div.innerHTML = `<div class="ai-avatar">AI</div><div class="ai-content">${marked.parse(text)}</div>`;
-            }
-            box.appendChild(div);
+        function renderMsg(r, t) {
+            const b = document.getElementById('messages-box');
+            const d = document.createElement('div');
+            d.className = r === 'user' ? 'user-msg' : 'ai-msg';
+            d.innerHTML = r === 'user' ? `<div class="user-content">${t}</div>` : `<div class="ai-avatar">AI</div><div class="ai-content">${marked.parse(t)}</div>`;
+            b.appendChild(d);
             document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight;
-            return role === 'user' ? div : div.querySelector('.ai-content');
+            return r === 'user' ? d : d.querySelector('.ai-content');
         }
 
         document.getElementById('send-btn').onclick = runChat;
