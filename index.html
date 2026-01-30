@@ -2,24 +2,141 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>FEYKIN AI | АРХИТЕКТОР КОДА</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChangeAI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background: #050505; color: #00ff41; font-family: 'Consolas', monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .container { border: 1px solid #00ff41; padding: 40px; box-shadow: 0 0 20px #004d1a; text-align: center; }
-        h1 { font-size: 2.5rem; letter-spacing: 5px; margin: 0; }
-        p { color: #888; text-transform: uppercase; font-size: 0.8rem; margin-top: 10px; }
-        .status { margin-top: 20px; color: #ff003c; animation: blink 1s infinite; }
-        @keyframes blink { 50% { opacity: 0; } }
-        .btn { margin-top: 30px; padding: 10px 25px; background: #00ff41; color: #000; border: none; cursor: pointer; font-weight: bold; text-decoration: none; display: inline-block; }
-        .btn:hover { background: #fff; box-shadow: 0 0 15px #fff; }
+        body { background-color: #ffffff; color: #0d0d0d; }
+        .sidebar { background-color: #f9f9f9; width: 260px; transition: all 0.3s; }
+        .chat-area { flex: 1; display: flex; flex-direction: column; height: 100vh; }
+        .messages-container { flex: 1; overflow-y: auto; padding-top: 50px; }
+        .input-container { max-width: 768px; margin: 0 auto; width: 100%; padding: 20px; }
+        .input-box { background: #f4f4f4; border-radius: 24px; padding: 12px 20px; display: flex; align-items: center; border: 1px solid transparent; }
+        .input-box:focus-within { border-color: #e5e5e5; background: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
+        .user-msg { font-weight: 500; margin-bottom: 20px; text-align: right; padding-right: 20px; }
+        .ai-msg { margin-bottom: 40px; line-height: 1.6; padding-left: 20px; }
+        .sidebar-item { padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sidebar-item:hover { background-color: #ececec; }
+        pre { background: #1e1e1e; color: #fff; padding: 15px; border-radius: 10px; margin: 10px 0; font-size: 13px; }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>FEYKIN AI</h1>
-        <p>Created by AzerOne / FEYKINS</p>
-        <div class="status">● SYSTEM: CODING MODE ACTIVE</div>
-        <a href="#" class="btn">DOWNLOAD APP</a>
-    </div>
+<body class="flex">
+
+    <aside class="sidebar h-screen p-3 flex flex-col hidden md:flex">
+        <button class="flex items-center gap-3 p-3 hover:bg-gray-200 rounded-lg transition mb-4">
+            <i class="fa-solid fa-pen-to-square"></i>
+            <span class="font-medium">Новый чат</span>
+        </button>
+        
+        <div class="flex-1 overflow-y-auto space-y-1">
+            <p class="text-xs text-gray-500 font-bold px-3 py-2 uppercase">Ваши чаты</p>
+            <div class="sidebar-item">Анализ трека AzerOneMusic</div>
+            <div class="sidebar-item">Сделать бит</div>
+            <div class="sidebar-item">Что делать если лагает</div>
+            <div class="sidebar-item">Решение задач 2 и 3</div>
+        </div>
+
+        <div class="border-t pt-4">
+            <div class="sidebar-item flex items-center gap-2">
+                <div class="w-7 h-7 bg-purple-500 rounded-full flex items-center justify-center text-white text-xs">A</div>
+                <span>Azer</span>
+            </div>
+        </div>
+    </aside>
+
+    <main class="chat-area">
+        <header class="p-4 flex justify-between items-center md:hidden">
+            <button class="text-gray-600"><i class="fa-solid fa-bars text-xl"></i></button>
+            <span class="font-bold">ChangeAI</span>
+            <div class="w-6"></div>
+        </header>
+
+        <div id="welcome-screen" class="flex-1 flex flex-col items-center justify-center">
+            <h2 class="text-3xl font-semibold mb-8">Над чем ты работаешь?</h2>
+        </div>
+
+        <div id="chat-content" class="messages-container hidden">
+            <div class="max-w-3xl mx-auto px-4" id="messages-list">
+                </div>
+        </div>
+
+        <div class="input-container">
+            <div class="input-box">
+                <button class="text-gray-500 mr-3 text-xl"><i class="fa-solid fa-circle-plus"></i></button>
+                <input type="text" id="user-input" placeholder="Спросите что-нибудь..." class="w-full bg-transparent outline-none text-lg">
+                <button id="send-btn" class="bg-black text-white w-10 h-10 rounded-full flex items-center justify-center ml-2 hover:opacity-80 transition">
+                    <i class="fa-solid fa-arrow-up"></i>
+                </button>
+            </div>
+            <p class="text-[10px] text-center text-gray-400 mt-2">
+                ChangeAI может допускать ошибки. Проверяйте важную информацию.
+            </p>
+        </div>
+    </main>
+
+    <script type="module">
+        import Groq from "https://cdn.skypack.dev/groq-sdk";
+
+        const GROQ_API_KEY = "ТВОЙ_КЛЮЧ"; 
+        const groq = new Groq({ apiKey: GROQ_API_KEY, dangerouslyAllowBrowser: true });
+
+        const welcomeScreen = document.getElementById('welcome-screen');
+        const chatContent = document.getElementById('chat-content');
+        const messagesList = document.getElementById('messages-list');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+
+        let messages = [{ role: "system", content: "You are ChangeAI, a helpful assistant." }];
+
+        async function handleSend() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            // Переключаем интерфейс
+            welcomeScreen.classList.add('hidden');
+            chatContent.classList.remove('hidden');
+
+            appendMessage('user', text);
+            userInput.value = '';
+            messages.push({ role: "user", content: text });
+
+            const aiDiv = appendMessage('assistant', '<div class="animate-pulse">...</div>');
+
+            try {
+                const completion = await groq.chat.completions.create({
+                    messages: messages,
+                    model: "llama-3.3-70b-versatile",
+                    stream: true,
+                });
+
+                let fullText = "";
+                aiDiv.innerHTML = "";
+
+                for await (const chunk of completion) {
+                    const delta = chunk.choices[0]?.delta?.content || "";
+                    fullText += delta;
+                    aiDiv.innerHTML = marked.parse(fullText);
+                    chatContent.scrollTop = chatContent.scrollHeight;
+                }
+                messages.push({ role: "assistant", content: fullText });
+            } catch (e) {
+                aiDiv.innerText = "Ошибка API. Проверь ключ.";
+            }
+        }
+
+        function appendMessage(role, content) {
+            const div = document.createElement('div');
+            div.className = role === 'user' ? 'user-msg' : 'ai-msg';
+            div.innerHTML = role === 'user' ? content : marked.parse(content);
+            messagesList.appendChild(div);
+            chatContent.scrollTop = chatContent.scrollHeight;
+            return div;
+        }
+
+        sendBtn.onclick = handleSend;
+        userInput.onkeydown = (e) => e.key === 'Enter' && handleSend();
+    </script>
 </body>
 </html>
