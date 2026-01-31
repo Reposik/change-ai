@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Chat</title>
+    <title>AI Chat | Fixed</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -20,27 +20,30 @@
         .ai-content { line-height: 1.6; font-size: 16px; color: #374151; width: 100%; }
         #auth-screen { background: white; z-index: 1000; position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
         .input-area { background: #f4f4f4; border-radius: 24px; padding: 8px 16px; border: 1px solid #e5e5e5; }
+        .err-text { color: #ef4444; font-size: 12px; margin-top: 10px; display: none; }
     </style>
 </head>
 <body class="flex h-screen">
 
     <div id="auth-screen">
-        <div class="max-w-sm w-full p-8 text-center">
-            <h1 class="text-2xl font-bold mb-8">Вход</h1>
-            <input type="email" id="email" placeholder="Email" class="w-full p-3 mb-2 bg-gray-50 rounded-xl border outline-none">
-            <input type="password" id="pass" placeholder="Пароль" class="w-full p-3 mb-4 bg-gray-50 rounded-xl border outline-none">
-            <button onclick="handleAuth()" class="w-full bg-black text-white p-3 rounded-xl font-bold">Войти / Регистрация</button>
+        <div class="max-w-sm w-full p-8 text-center border rounded-3xl shadow-sm">
+            <div class="w-12 h-12 bg-black rounded-xl mx-auto mb-4 flex items-center justify-center text-white font-bold">AI</div>
+            <h1 class="text-xl font-bold mb-6">Вход или Регистрация</h1>
+            <input type="email" id="email" placeholder="Email" class="w-full p-3 mb-2 bg-gray-50 rounded-xl border outline-none focus:ring-1 ring-black">
+            <input type="password" id="pass" placeholder="Пароль" class="w-full p-3 mb-4 bg-gray-50 rounded-xl border outline-none focus:ring-1 ring-black">
+            <button onclick="handleAuth()" id="auth-btn" class="w-full bg-black text-white p-3 rounded-xl font-bold hover:opacity-80 transition">Продолжить</button>
+            <p id="auth-err" class="err-text"></p>
         </div>
     </div>
 
     <aside class="sidebar flex flex-col hidden md:flex">
-        <div class="p-4"><button onclick="location.reload()" class="w-full p-2 bg-white border rounded-lg text-sm font-medium">Новый чат</button></div>
+        <div class="p-4"><button onclick="location.reload()" class="w-full p-2 bg-white border rounded-lg text-sm font-medium hover:bg-gray-50">Новый чат</button></div>
         <div id="history-list" class="flex-1 overflow-y-auto px-2"></div>
     </aside>
 
     <main class="flex-1 flex flex-col h-screen">
         <div id="welcome" class="flex-1 flex flex-col items-center justify-center text-center opacity-20">
-            <h2 class="text-2xl font-semibold">AI Assistant</h2>
+            <h2 class="text-2xl font-semibold">Начните общение</h2>
         </div>
 
         <div id="chat-window" class="flex-1 overflow-y-auto hidden p-6">
@@ -50,8 +53,8 @@
         <div class="p-6">
             <div class="chat-container">
                 <div class="input-area flex items-center gap-3">
-                    <input type="text" id="user-input" placeholder="Напишите сообщение..." class="flex-1 bg-transparent outline-none py-2">
-                    <button id="send-btn" class="bg-black text-white w-9 h-9 rounded-full flex items-center justify-center hover:opacity-80 transition">
+                    <input type="text" id="user-input" placeholder="Напишите что-нибудь..." class="flex-1 bg-transparent outline-none py-2">
+                    <button id="send-btn" class="bg-black text-white w-9 h-9 rounded-full flex items-center justify-center transition active:scale-90">
                         <i class="fa-solid fa-arrow-up"></i>
                     </button>
                 </div>
@@ -79,15 +82,34 @@
         const auth = getAuth(app);
         const db = getDatabase(app);
         
-        // Берем ключ напрямую из окружения/переменной
+        // Ключ берется из окружения браузера, как ты и сказал
         const groq = new Groq({ apiKey: GROQ_API_KEY, dangerouslyAllowBrowser: true });
 
         let currentChatId = null;
 
+        // ИСПРАВЛЕННАЯ РЕГИСТРАЦИЯ
         window.handleAuth = async () => {
             const e = document.getElementById('email').value, p = document.getElementById('pass').value;
-            try { await signInWithEmailAndPassword(auth, e, p); } 
-            catch { await createUserWithEmailAndPassword(auth, e, p); }
+            const errBox = document.getElementById('auth-err');
+            errBox.style.display = 'none';
+
+            try {
+                // Пробуем войти
+                await signInWithEmailAndPassword(auth, e, p);
+            } catch (error) {
+                // Если пользователя нет — регистрируем
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+                    try {
+                        await createUserWithEmailAndPassword(auth, e, p);
+                    } catch (regError) {
+                        errBox.innerText = "Ошибка регистрации: " + regError.message;
+                        errBox.style.display = 'block';
+                    }
+                } else {
+                    errBox.innerText = "Ошибка входа: " + error.message;
+                    errBox.style.display = 'block';
+                }
+            }
         };
 
         onAuthStateChanged(auth, u => {
@@ -122,7 +144,10 @@
                     win.scrollTop = win.scrollHeight;
                 }
                 saveChat(val, fullText);
-            } catch (e) { aiDiv.innerText = "Ошибка API."; }
+            } catch (e) { 
+                aiDiv.innerText = "Ошибка API. Проверь GROQ_API_KEY в браузере."; 
+                console.error(e);
+            }
         }
 
         function renderMsg(role, text) {
@@ -136,6 +161,7 @@
         }
 
         async function saveChat(u, a) {
+            if (!auth.currentUser) return;
             const uid = auth.currentUser.uid;
             if(!currentChatId) {
                 const r = push(ref(db, `chats/${uid}`));
