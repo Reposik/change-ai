@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Chat | WinTube Project</title>
+    <title>Change AI | Azer Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -22,45 +22,42 @@
         .input-area { background: #f4f4f4; border-radius: 24px; padding: 8px 16px; border: 1px solid #e5e5e5; }
         .loader { width: 16px; height: 16px; border: 2px solid #ddd; border-top-color: #000; border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        pre { background: #1a1a1a; color: #fff; padding: 15px; border-radius: 10px; margin: 10px 0; overflow-x: auto; }
     </style>
 </head>
 <body class="flex h-screen">
 
     <div id="auth-screen">
         <div class="max-w-sm w-full p-8 text-center border rounded-3xl shadow-sm">
-            <div class="w-12 h-12 bg-black rounded-xl mx-auto mb-4 flex items-center justify-center text-white font-bold">AI</div>
-            <h1 class="text-xl font-bold mb-2">WinTube AI</h1>
-            <p class="text-gray-400 text-xs mb-6">Вход или создание аккаунта</p>
+            <div class="w-12 h-12 bg-black rounded-xl mx-auto mb-4 flex items-center justify-center text-white font-bold text-xl">C</div>
+            <h1 class="text-xl font-bold mb-2">Change AI</h1>
+            <p class="text-gray-400 text-xs mb-6">Войдите в свой аккаунт</p>
             
             <input type="email" id="email" placeholder="Email" class="w-full p-3 mb-2 bg-gray-50 rounded-xl border outline-none focus:ring-1 ring-black">
             <input type="password" id="pass" placeholder="Пароль" class="w-full p-3 mb-4 bg-gray-50 rounded-xl border outline-none focus:ring-1 ring-black">
             
             <p id="auth-err" class="text-red-500 text-xs mb-4 hidden"></p>
             
-            <button onclick="handleAuth()" class="w-full bg-black text-white p-3 rounded-xl font-bold hover:opacity-80 transition active:scale-95">
-                Продолжить
-            </button>
+            <button onclick="handleAuth()" class="w-full bg-black text-white p-3 rounded-xl font-bold hover:opacity-80 transition">Войти</button>
         </div>
     </div>
 
     <aside class="sidebar flex flex-col hidden md:flex">
         <div class="p-4">
-            <button onclick="location.reload()" class="w-full p-2 bg-white border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 transition">
-                + Новый чат
+            <button onclick="location.reload()" class="w-full p-2 bg-white border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50">
+                + Новый диалог
             </button>
         </div>
         <div id="history-list" class="flex-1 overflow-y-auto px-2"></div>
-        <div class="p-4 border-t flex justify-between items-center text-xs text-gray-400">
-            <span id="user-display">User</span>
-            <button onclick="signOut(auth)" title="Выйти"><i class="fa-solid fa-sign-out"></i></button>
+        <div class="p-4 border-t text-xs text-gray-400 flex justify-between items-center">
+            <span id="user-display">Change AI User</span>
+            <button onclick="signOut(auth).then(() => location.reload())"><i class="fa-solid fa-sign-out"></i></button>
         </div>
     </aside>
 
     <main class="flex-1 flex flex-col h-screen">
-        <div id="welcome" class="flex-1 flex flex-col items-center justify-center text-center px-6 opacity-20">
-            <h2 class="text-3xl font-bold mb-2">Aнонимный ИИ</h2>
-            <p>Ваши данные в безопасности</p>
+        <div id="welcome" class="flex-1 flex flex-col items-center justify-center text-center px-6 opacity-30">
+            <h2 class="text-4xl font-bold mb-2">Change AI</h2>
+            <p>Будущее уже здесь</p>
         </div>
 
         <div id="chat-window" class="flex-1 overflow-y-auto hidden p-6">
@@ -70,8 +67,8 @@
         <div class="p-6">
             <div class="chat-container">
                 <div class="input-area flex items-center gap-3">
-                    <input type="text" id="user-input" placeholder="Спросите что-нибудь..." class="flex-1 bg-transparent outline-none py-2">
-                    <button id="send-btn" class="bg-black text-white w-9 h-9 rounded-full flex items-center justify-center hover:opacity-80 transition active:scale-90">
+                    <input type="text" id="user-input" placeholder="Спросите Change AI..." class="flex-1 bg-transparent outline-none py-2">
+                    <button id="send-btn" class="bg-black text-white w-9 h-9 rounded-full flex items-center justify-center transition active:scale-90">
                         <i class="fa-solid fa-arrow-up"></i>
                     </button>
                 </div>
@@ -99,26 +96,19 @@
         const auth = getAuth(app);
         const db = getDatabase(app);
 
-        // Попытка взять ключ из разных источников
+        let groq = null;
+        let currentChatId = null;
+
+        // Поиск ключа
         const getApiKey = () => {
             try { return GROQ_API_KEY; } catch { return localStorage.getItem('GROQ_KEY'); }
         };
 
-        let groq = null;
-        let currentChatId = null;
-
-        // АВТОРИЗАЦИЯ
         window.handleAuth = async () => {
             const e = document.getElementById('email').value.trim();
             const p = document.getElementById('pass').value;
             const errBox = document.getElementById('auth-err');
             errBox.classList.add('hidden');
-
-            if (p.length < 6) {
-                errBox.innerText = "Пароль должен быть от 6 символов!";
-                errBox.classList.remove('hidden');
-                return;
-            }
 
             try {
                 await signInWithEmailAndPassword(auth, e, p);
@@ -127,12 +117,9 @@
                     try {
                         await createUserWithEmailAndPassword(auth, e, p);
                     } catch (regError) {
-                        errBox.innerText = "Ошибка регистрации: " + regError.message;
+                        errBox.innerText = "Ошибка: " + regError.message;
                         errBox.classList.remove('hidden');
                     }
-                } else {
-                    errBox.innerText = "Ошибка: " + error.message;
-                    errBox.classList.remove('hidden');
                 }
             }
         };
@@ -152,17 +139,13 @@
             if(!val) return; input.value = '';
 
             if(!groq) {
-                const key = prompt("Ключ GROQ_API_KEY не найден. Введите его вручную:");
-                if(key) {
-                    localStorage.setItem('GROQ_KEY', key);
-                    location.reload();
-                }
+                const k = prompt("Введите GROQ_API_KEY для Change AI:");
+                if(k) { localStorage.setItem('GROQ_KEY', k); location.reload(); }
                 return;
             }
 
             document.getElementById('welcome').classList.add('hidden');
-            const win = document.getElementById('chat-window');
-            win.classList.remove('hidden');
+            document.getElementById('chat-window').classList.remove('hidden');
 
             renderMsg('user', val);
             const aiDiv = renderMsg('assistant', '<div class="loader"></div>');
@@ -173,32 +156,26 @@
                     model: "llama-3.3-70b-versatile",
                     stream: true,
                 });
-                let full = "";
-                aiDiv.innerHTML = "";
+                let full = ""; aiDiv.innerHTML = "";
                 for await (const chunk of stream) {
                     full += chunk.choices[0]?.delta?.content || "";
                     aiDiv.innerHTML = marked.parse(full);
-                    win.scrollTop = win.scrollHeight;
+                    document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight;
                 }
                 saveChat(val, full);
-            } catch (e) {
-                aiDiv.innerText = "Ошибка API. Проверьте ваш ключ Groq.";
-                console.error(e);
-            }
+            } catch (e) { aiDiv.innerText = "Ошибка API."; }
         }
 
         function renderMsg(role, text) {
             const box = document.getElementById('messages-box');
             const div = document.createElement('div');
             div.className = role === 'user' ? 'user-msg' : 'ai-msg';
-            div.innerHTML = role === 'user' ? `<div class="user-content">${text}</div>` : `<div class="ai-avatar">AI</div><div class="ai-content">${marked.parse(text)}</div>`;
+            div.innerHTML = role === 'user' ? `<div class="user-content">${text}</div>` : `<div class="ai-avatar">C</div><div class="ai-content">${marked.parse(text)}</div>`;
             box.appendChild(div);
-            document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight;
             return role === 'user' ? div : div.querySelector('.ai-content');
         }
 
         async function saveChat(u, a) {
-            if (!auth.currentUser) return;
             const uid = auth.currentUser.uid;
             if(!currentChatId) {
                 const r = push(ref(db, `chats/${uid}`));
@@ -229,7 +206,6 @@
 
         document.getElementById('send-btn').onclick = runChat;
         document.getElementById('user-input').onkeydown = e => e.key === 'Enter' && runChat();
-        window.signOutUser = () => signOut(auth).then(() => location.reload());
     </script>
 </body>
 </html>
